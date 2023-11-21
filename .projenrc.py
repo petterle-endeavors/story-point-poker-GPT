@@ -8,10 +8,10 @@ AUTHORS = [
 PROJECT = PythonProject(
     author_email="jacobpetterle@tai-tutor.team",
     author_name=AUTHORS[0],
-    module_name="module_name",
-    name="package-name",
+    module_name="story_point_gpt",
+    name="story-point-poker-gpt",
     version="0.0.0",
-    description="description",
+    description="A story point poker game using GPT agents.",
     poetry=True,
     deps=[
         "mangum@^0.17",
