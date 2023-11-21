@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Request, Body, Query
 from .schemas import (
     StartGameRequest,
@@ -22,8 +23,8 @@ ROUTER = APIRouter()
     response_model=StartGameResponse
 )
 def start_game(
+    request: Request,
     start_request: StartGameRequest = Body(...),
-    request: Request
 ) -> StartGameResponse:
     """Start a new game session."""
     # Your logic here to start a new game
@@ -35,6 +36,7 @@ def start_game(
         session_identifier="session-identifier"
     )
 
+
 @ROUTER.post(
     "/join-game",
     name="Join an existing game",
@@ -43,8 +45,8 @@ def start_game(
     response_model=JoinGameResponse
 )
 def join_game(
+    request: Request,
     join_request: JoinGameRequest = Body(...),
-    request: Request
 ) -> JoinGameResponse:
     """Join an existing game."""
     # Your logic here to join a game
@@ -55,6 +57,7 @@ def join_game(
         player_identifier="unique-player-identifier"
     )
 
+
 @ROUTER.post(
     "/end-game",
     name="End the game session",
@@ -63,8 +66,8 @@ def join_game(
     response_model=EndGameResponse
 )
 def end_game(
+    request: Request,
     end_request: EndGameRequest = Body(...),
-    request: Request
 ) -> EndGameResponse:
     """End the game session."""
     # Your logic here to end the game
@@ -74,6 +77,7 @@ def end_game(
         confirmation="Game has ended successfully."
     )
 
+
 @ROUTER.get(
     "/has-everyone-voted",
     name="Check if all players have voted",
@@ -82,9 +86,9 @@ def end_game(
     response_model=VotingStatusResponse
 )
 def has_everyone_voted(
+    request: Request,
     game_code: str = Query(..., description="The game code to check voting status."),
     session_identifier: Optional[str] = Query(None, description="Optional session identifier."),
-    request: Request
 ) -> VotingStatusResponse:
     """Check if all players have voted."""
     # Your logic here to check voting status
@@ -95,6 +99,7 @@ def has_everyone_voted(
         details=None  # Fill with details if necessary
     )
 
+
 @ROUTER.get(
     "/results",
     name="Get voting results",
@@ -103,9 +108,9 @@ def has_everyone_voted(
     response_model=ResultsResponse
 )
 def get_results(
+    request: Request,
     game_code: str = Query(..., description="The game code to get results for."),
     session_identifier: Optional[str] = Query(None, description="Optional session identifier."),
-    request: Request
 ) -> ResultsResponse:
     """Get the results of the voting."""
     # Your logic here to calculate and retrieve results
