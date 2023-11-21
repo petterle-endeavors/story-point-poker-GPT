@@ -1,15 +1,13 @@
-"""Define the routes for the OpenAPI router."""
-from fastapi import APIRouter, File, Path, Request, UploadFile
-from openapi_retriever.api.routers.openapi.models import (
-    OpenAPISchemaSearchRequest,
-    OpenAPIMetadataSearchResponse,
-    OpenAPISchemaResponse,
-)
-from openapi_retriever.api.services.postman import Postman
-from openapi_retriever.api.services.schema_bucket import SchemaBucket
-from openapi_retriever.api.settings import (
-    RUNTIME_SETTINGS_ATTRIBUTE_NAME,
-    Settings,
+from fastapi import APIRouter, Request, Body, Query
+from .schemas import (
+    StartGameRequest,
+    StartGameResponse,
+    JoinGameRequest,
+    JoinGameResponse,
+    EndGameRequest,
+    EndGameResponse,
+    VotingStatusResponse,
+    ResultsResponse
 )
 
 
@@ -17,65 +15,103 @@ ROUTER = APIRouter()
 
 
 @ROUTER.post(
-    "/search",
-    name="Search for OpenAPI Schemas",
-    operation_id="search_openapi_schemas",
-    description="Search for OpenAPI schemas in the public Postman Collections repositories.",
-    response_model=OpenAPIMetadataSearchResponse,
+    "/start-game",
+    name="Start a new game",
+    operation_id="start_game",
+    description="Starts a new game session, optionally with an admin code.",
+    response_model=StartGameResponse
 )
-def search_openapi_schemas(
-    search_request: OpenAPISchemaSearchRequest,
-    request: Request,
-) -> OpenAPIMetadataSearchResponse:
-    """Search for OpenAPI schemas."""
-    settings: Settings = getattr(request.app.state, RUNTIME_SETTINGS_ATTRIBUTE_NAME)
-    postman_client = Postman(settings=settings)
-    response = postman_client.search_openapi_schemas(search_request)
-    return OpenAPIMetadataSearchResponse(
-        search_query=search_request.search_query,
-        ranked_schema_metadata=response,
+def start_game(
+    start_request: StartGameRequest = Body(...),
+    request: Request
+) -> StartGameResponse:
+    """Start a new game session."""
+    # Your logic here to start a new game
+    # ...
+
+    return StartGameResponse(
+        game_code="unique-game-code",
+        confirmation="Game has started successfully.",
+        session_identifier="session-identifier"
     )
-
-
-@ROUTER.get(
-    "/{schema_id}",
-    name="Get OpenAPI Schema",
-    operation_id="get_openapi_schema",
-    description="Retrieve an OpenAPI schema from an id returned from the search endpoint.",
-    response_model=OpenAPISchemaResponse
-)
-def get_openapi_schema(
-    request: Request,
-    schema_id: str = Path(..., title="The ID of the schema to retrieve."),
-) -> OpenAPISchemaResponse:
-    """Retrieve an OpenAPI schema."""
-    settings: Settings = getattr(request.app.state, RUNTIME_SETTINGS_ATTRIBUTE_NAME)
-    postman_client = Postman(settings=settings)
-    schema = postman_client.get_openapi_schema(schema_id)
-    schema = postman_client.remove_responses_from_openapi(schema)
-    return OpenAPISchemaResponse(
-        schema_id=schema_id,
-        openapi_schema=schema,
-    )
-
 
 @ROUTER.post(
-    "/upload-file",
-    name="Upload file to S3 and get URL",
-    operation_id="upload_file_to_s3_and_get_url",
-    description="Uploads a file to an S3 bucket and returns the URL to the file.",
-    include_in_schema=False,
+    "/join-game",
+    name="Join an existing game",
+    operation_id="join_game",
+    description="Allows a player to join a game using the game code.",
+    response_model=JoinGameResponse
 )
-async def upload_file_to_s3_and_get_url(
-    request: Request,
-    file: UploadFile = File(..., description="The file to upload.")
-) -> dict:
-    """Upload file to S3 bucket and return the URL of the file."""
-    settings: Settings = getattr(request.app.state, RUNTIME_SETTINGS_ATTRIBUTE_NAME)
-    schema_bucket_service = SchemaBucket(settings=settings)
-    
-    try:
-        file_url = schema_bucket_service.upload_file(file=file)
-        return {"file_url": file_url}
-    except Exception as error:  # pylint: disable=broad-except
-        return {"error": str(error)}
+def join_game(
+    join_request: JoinGameRequest = Body(...),
+    request: Request
+) -> JoinGameResponse:
+    """Join an existing game."""
+    # Your logic here to join a game
+    # ...
+
+    return JoinGameResponse(
+        confirmation="Player has joined the game successfully.",
+        player_identifier="unique-player-identifier"
+    )
+
+@ROUTER.post(
+    "/end-game",
+    name="End the game session",
+    operation_id="end_game",
+    description="Ends the game session using the admin code.",
+    response_model=EndGameResponse
+)
+def end_game(
+    end_request: EndGameRequest = Body(...),
+    request: Request
+) -> EndGameResponse:
+    """End the game session."""
+    # Your logic here to end the game
+    # ...
+
+    return EndGameResponse(
+        confirmation="Game has ended successfully."
+    )
+
+@ROUTER.get(
+    "/has-everyone-voted",
+    name="Check if all players have voted",
+    operation_id="has_everyone_voted",
+    description="Checks if all players in the game have cast their votes.",
+    response_model=VotingStatusResponse
+)
+def has_everyone_voted(
+    game_code: str = Query(..., description="The game code to check voting status."),
+    session_identifier: Optional[str] = Query(None, description="Optional session identifier."),
+    request: Request
+) -> VotingStatusResponse:
+    """Check if all players have voted."""
+    # Your logic here to check voting status
+    # ...
+
+    return VotingStatusResponse(
+        has_everyone_voted=True,
+        details=None  # Fill with details if necessary
+    )
+
+@ROUTER.get(
+    "/results",
+    name="Get voting results",
+    operation_id="get_voting_results",
+    description="Gathers and returns the results from the voting round.",
+    response_model=ResultsResponse
+)
+def get_results(
+    game_code: str = Query(..., description="The game code to get results for."),
+    session_identifier: Optional[str] = Query(None, description="Optional session identifier."),
+    request: Request
+) -> ResultsResponse:
+    """Get the results of the voting."""
+    # Your logic here to calculate and retrieve results
+    # ...
+
+    return ResultsResponse(
+        votes=[{"player_identifier": "player1", "vote": "optionA"}, {"player_identifier": "player2", "vote": "optionB"}],
+        results={"winner": "optionA"}
+    )

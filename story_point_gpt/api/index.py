@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from mangum import Mangum
 
 from story_point_gpt.api.routers.admin.routes import ROUTER as health_router
-from openapi_retriever.api.routers.openapi.routes import ROUTER as openapi_router
+from story_point_gpt.api.routers.game_admin.routes import ROUTER as game_admin_router
 from story_point_gpt.api.settings import (
     Settings,
     RUNTIME_SETTINGS_ATTRIBUTE_NAME,
@@ -17,7 +17,7 @@ APP = FastAPI(
 )
 setattr(APP.state, RUNTIME_SETTINGS_ATTRIBUTE_NAME, Settings())
 APP.include_router(health_router, prefix="/admin", tags=["admin"])
-APP.include_router(openapi_router, prefix="/openapi", tags=["openapi"])
+APP.include_router(game_admin_router, prefix="/game-admin", tags=["game-admin"])
 
 
 handler = Mangum(APP)
